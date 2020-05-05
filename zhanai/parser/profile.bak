@@ -1,0 +1,55 @@
+package parser
+
+import (
+	"imooc/learngo/crawler/engine"
+	"imooc/learngo/crawler/model"
+	"regexp"
+	"strconv"
+)
+
+var idRe = regexp.MustCompile(`<div data-v-5b109fc3="" class="id">ID：([\d]+)</div>`)
+var ageRe = regexp.MustCompile(`<div data-v-8b1eac0c="" class="m-btn purple">([\d]+)岁</div>`)
+var incomeRe = regexp.MustCompile(`<div data-v-8b1eac0c="" class="m-btn purple">月收入:([^<]+)</div>`)
+var weightRe = regexp.MustCompile(`<div data-v-8b1eac0c="" class="m-btn purple">([\d]+)kg</div>`)
+var heightRe = regexp.MustCompile(`<div data-v-8b1eac0c="" class="m-btn purple">([\d]+)cm</div>`)
+var workerRe = regexp.MustCompile(`<div data-v-8b1eac0c="" class="m-btn purple">工作地:([^<]+)</div>`)
+
+func ParseProfile(contents []byte, name string) engine.ParseResult {
+	profile := model.Profile{}
+	profile.Name = name
+	id, err := strconv.Atoi(extractString(contents, idRe))
+	if err != nil {
+		profile.Id = id
+	}
+	// 年龄
+	age, err := strconv.Atoi(extractString(contents, ageRe))
+	if err != nil {
+		profile.Age = age
+	}
+	// 收入
+	profile.Income = extractString(contents, incomeRe)
+	height, err := strconv.Atoi(extractString(contents, heightRe))
+	if err != nil {
+		profile.Height = height
+	}
+	// 体重
+	weight, err := strconv.Atoi(extractString(contents, weightRe))
+	if err != nil {
+		profile.Weight = weight
+	}
+	profile.WorkPlace = extractString(contents, workerRe)
+
+	result := engine.ParseResult{
+		Items: []interface{}{profile},
+	}
+	return result
+}
+
+func extractString(contents []byte, re *regexp.Regexp) string {
+	match := re.FindSubmatch(contents)
+	if len(match) >= 2 {
+		return string(match[1])
+	} else {
+		return ""
+	}
+}
