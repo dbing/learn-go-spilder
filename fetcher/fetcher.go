@@ -7,7 +7,10 @@ import (
 	"time"
 )
 
+var rateLimiter = time.Tick(10 * time.Millisecond)
+
 func Fetch(url string) ([]byte, error) {
+	<-rateLimiter
 	//resp, err := http.Get(url)
 	client := http.Client{}
 	request, err := http.NewRequest("GET", url, nil)
@@ -23,7 +26,7 @@ func Fetch(url string) ([]byte, error) {
 	defer resp.Body.Close()
 	if resp.StatusCode != http.StatusOK {
 		all, err := ioutil.ReadAll(resp.Body)
-		if err != nil{
+		if err != nil {
 			fmt.Println("resp Error")
 		}
 		fmt.Println(string(all))
